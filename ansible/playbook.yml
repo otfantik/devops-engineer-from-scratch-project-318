@@ -13,7 +13,7 @@
   roles:
     - deploy
 
-# — только 80-блок, для ACME-челленджа
+# HTTP only, needed for ACME challenge
 - name: Setup nginx (HTTP only)
   hosts: bulletins-vm
   become: true
@@ -22,7 +22,7 @@
   roles:
     - nginx
 
-# —  сертификат
+# Obtain TLS certificate
 - name: Issue TLS certificate
   hosts: bulletins-vm
   become: true
@@ -31,7 +31,7 @@
   roles:
     - certbot
 
-#  — перерендериваем nginx с 443-блоком
+# Re-render nginx with 443 block
 - name: Reconfigure nginx with TLS
   hosts: bulletins-vm
   become: true
@@ -39,3 +39,11 @@
     - vault.yml
   roles:
     - nginx
+
+# Host-level metrics
+- name: Install Prometheus Node Exporter
+  hosts: bulletins-vm
+  become: true
+  tags: [node_exporter]
+  roles:
+    - node_exporter

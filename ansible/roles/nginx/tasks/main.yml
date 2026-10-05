@@ -1,4 +1,12 @@
 ---
+- name: Deploy nginx JSON log format
+  ansible.builtin.template:
+    src: json_logs.conf.j2
+    dest: /etc/nginx/conf.d/json_logs.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify: reload nginx
 - name: Check if TLS certificate exists
   ansible.builtin.stat:
     path: "/etc/letsencrypt/live/{{ domain_name }}/fullchain.pem"
