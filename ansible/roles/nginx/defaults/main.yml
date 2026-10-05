@@ -1,0 +1,4 @@
+---
+nginx_app_upstream: "http://127.0.0.1:8080"
+nginx_actuator_upstream: "http://127.0.0.1:9090"
+nginx_server_name: "{{ domain_name }}"

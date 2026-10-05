@@ -1,0 +1,50 @@
+---
+- name: Check if TLS certificate exists
+  ansible.builtin.stat:
+    path: "/etc/letsencrypt/live/{{ domain_name }}/fullchain.pem"
+  register: nginx_cert_check
+
+- name: Set cert_exists fact
+  ansible.builtin.set_fact:
+    cert_exists: "{{ nginx_cert_check.stat.exists }}"
+
+- name: Install nginx
+  ansible.builtin.apt:
+    name:
+      - nginx
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Remove default nginx site
+  ansible.builtin.file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+  notify: reload nginx
+
+- name: Deploy bulletins nginx site
+  ansible.builtin.template:
+    src: bulletins.conf.j2
+    dest: /etc/nginx/sites-available/bulletins.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify: reload nginx
+
+- name: Enable bulletins site
+  ansible.builtin.file:
+    src: /etc/nginx/sites-available/bulletins.conf
+    dest: /etc/nginx/sites-enabled/bulletins.conf
+    state: link
+  notify: reload nginx
+
+- name: Validate nginx config
+  ansible.builtin.command: nginx -t
+  changed_when: false
+
+- name: Ensure nginx is running and enabled
+  ansible.builtin.service:
+    name: nginx
+    state: started
+    enabled: true
+

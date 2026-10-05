@@ -1,0 +1,8 @@
+---
+app_name: bulletins
+app_dir: /opt/bulletins
+app_image: ghcr.io/otfantik/project-devops-deploy:latest
+app_port: 8080
+management_port: 9090
+app_java_opts: "-Xmx1g -Xms256m"
+deploy_force_restart: false

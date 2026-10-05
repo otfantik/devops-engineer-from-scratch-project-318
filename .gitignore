@@ -1,0 +1,12 @@
+# Ansible
+ansible/.vault_pass
+ansible/*.retry
+ansible/inventory.yml
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# OS
+.DS_Store

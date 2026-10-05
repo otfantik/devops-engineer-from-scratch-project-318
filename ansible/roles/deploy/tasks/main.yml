@@ -1,0 +1,70 @@
+---
+- name: Ensure app directory exists
+  ansible.builtin.file:
+    path: "{{ app_dir }}"
+    state: directory
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: "0755"
+
+- name: Render .env file
+  ansible.builtin.template:
+    src: env.j2
+    dest: "{{ app_dir }}/.env"
+    owner: "{{ ansible_user }}"
+    mode: "0600"
+  no_log: true
+
+- name: Render docker-compose.yml
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: "{{ app_dir }}/docker-compose.yml"
+    owner: "{{ ansible_user }}"
+    mode: "0644"
+
+- name: Pull app image
+  community.docker.docker_compose_v2:
+    project_src: "{{ app_dir }}"
+    files:
+      - docker-compose.yml
+    pull: always
+    state: present
+
+- name: Start app container
+  community.docker.docker_compose_v2:
+    project_src: "{{ app_dir }}"
+    files:
+      - docker-compose.yml
+    state: present
+    recreate: auto
+
+- name: Wait for app to become healthy
+  ansible.builtin.uri:
+    url: "http://127.0.0.1:{{ management_port }}/actuator/health"
+    return_content: true
+    status_code: 200
+  register: health
+  until: health.status == 200 and '"status":"UP"' in health.content
+  retries: 20
+  delay: 6
+  changed_when: false
+
+- name: Restart app container if requested
+  community.docker.docker_compose_v2:
+    project_src: "{{ app_dir }}"
+    files:
+      - docker-compose.yml
+    state: restarted
+  when: deploy_force_restart | bool
+
+- name: Wait for app to become healthy after restart
+  ansible.builtin.uri:
+    url: "http://127.0.0.1:{{ management_port }}/actuator/health"
+    return_content: true
+    status_code: 200
+  register: health_after_restart
+  until: health_after_restart.status == 200 and '"status":"UP"' in health_after_restart.content
+  retries: 20
+  delay: 6
+  when: deploy_force_restart | bool
+  changed_when: false

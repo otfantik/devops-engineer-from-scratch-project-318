@@ -1,0 +1,41 @@
+---
+- name: Configure bulletins VM
+  hosts: bulletins-vm
+  become: true
+  roles:
+    - docker
+
+- name: Deploy bulletins application
+  hosts: bulletins-vm
+  become: true
+  vars_files:
+    - vault.yml
+  roles:
+    - deploy
+
+# — только 80-блок, для ACME-челленджа
+- name: Setup nginx (HTTP only)
+  hosts: bulletins-vm
+  become: true
+  vars_files:
+    - vault.yml
+  roles:
+    - nginx
+
+# —  сертификат
+- name: Issue TLS certificate
+  hosts: bulletins-vm
+  become: true
+  vars_files:
+    - vault.yml
+  roles:
+    - certbot
+
+#  — перерендериваем nginx с 443-блоком
+- name: Reconfigure nginx with TLS
+  hosts: bulletins-vm
+  become: true
+  vars_files:
+    - vault.yml
+  roles:
+    - nginx

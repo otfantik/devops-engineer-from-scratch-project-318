@@ -1,0 +1,109 @@
+{% if cert_exists | default(false) %}
+# HTTPS
+server {
+    listen 443 ssl http2;
+    listen [::]:443 ssl;
+    server_name {{ nginx_server_name }};
+
+    ssl_certificate     /etc/letsencrypt/live/{{ nginx_server_name }}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/{{ nginx_server_name }}/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_prefer_server_ciphers off;
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_timeout 1d;
+
+    client_max_body_size 20M;
+
+    location / {
+        proxy_pass {{ nginx_app_upstream }};
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 60s;
+    }
+
+    location /api/ {
+        proxy_pass {{ nginx_app_upstream }};
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 60s;
+    }
+
+    location /swagger-ui/ {
+        proxy_pass {{ nginx_app_upstream }};
+        proxy_set_header Host $host;
+    }
+
+    location /v3/api-docs {
+        proxy_pass {{ nginx_app_upstream }};
+        proxy_set_header Host $host;
+    }
+
+    location /actuator/ {
+        proxy_pass {{ nginx_actuator_upstream }};
+        proxy_set_header Host $host;
+        allow 127.0.0.1;
+        deny all;
+    }
+}
+{% endif %}
+
+# HTTP: либо redirect, либо отдача (нужна для ACME-челленджа)
+server {
+    listen 80;
+    listen [::]:80;
+    server_name {{ nginx_server_name }};
+
+{% if cert_exists | default(false) %}
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+    location / {
+        return 301 https://$host$request_uri;
+    }
+{% else %}
+    client_max_body_size 20M;
+
+    location / {
+        proxy_pass {{ nginx_app_upstream }};
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 60s;
+    }
+
+    location /api/ {
+        proxy_pass {{ nginx_app_upstream }};
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 60s;
+    }
+
+    location /swagger-ui/ {
+        proxy_pass {{ nginx_app_upstream }};
+        proxy_set_header Host $host;
+    }
+
+    location /v3/api-docs {
+        proxy_pass {{ nginx_app_upstream }};
+        proxy_set_header Host $host;
+    }
+
+    location /actuator/ {
+        proxy_pass {{ nginx_actuator_upstream }};
+        proxy_set_header Host $host;
+        allow 127.0.0.1;
+        deny all;
+    }
+{% endif %}
+}

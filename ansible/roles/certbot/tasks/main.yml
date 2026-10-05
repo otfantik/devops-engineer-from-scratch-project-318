@@ -1,0 +1,51 @@
+---
+- name: Install certbot
+  ansible.builtin.apt:
+    name:
+      - certbot
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Ensure webroot dir exists
+  ansible.builtin.file:
+    path: /var/www/certbot
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Check if certificate already exists
+  ansible.builtin.stat:
+    path: "/etc/letsencrypt/live/{{ certbot_domain }}/fullchain.pem"
+  register: cert_file
+
+- name: Obtain Let's Encrypt certificate via webroot
+  ansible.builtin.command:
+    cmd: >-
+      certbot certonly --webroot -w /var/www/certbot
+      --non-interactive
+      --agree-tos
+      --no-eff-email
+      -m {{ certbot_email_addr }}
+      -d {{ certbot_domain }}
+      {% if certbot_staging %}--staging{% endif %}
+  when: not cert_file.stat.exists
+  register: certbot_result
+  changed_when: certbot_result.rc == 0
+
+- name: Verify certificate file exists
+  ansible.builtin.stat:
+    path: "/etc/letsencrypt/live/{{ certbot_domain }}/fullchain.pem"
+  register: cert_check
+
+- name: Fail if certificate not found
+  ansible.builtin.fail:
+    msg: "Certificate for {{ certbot_domain }} was not issued. Check certbot output."
+  when: not cert_check.stat.exists
+
+- name: Ensure certbot renewal timer is enabled
+  ansible.builtin.systemd:
+    name: certbot.timer
+    enabled: true
+    state: started

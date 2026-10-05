@@ -1,0 +1,4 @@
+---
+certbot_domain: "{{ domain_name }}"
+certbot_email_addr: "{{ certbot_email }}"
+certbot_staging: false
