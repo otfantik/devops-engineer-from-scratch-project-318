@@ -47,3 +47,15 @@
   tags: [node_exporter]
   roles:
     - node_exporter
+
+- name: Configure monitoring VM
+  hosts: monitoring
+  become: true
+  roles:
+    - docker
+
+- name: Install Prometheus
+  hosts: monitoring
+  become: true
+  roles:
+    - prometheus

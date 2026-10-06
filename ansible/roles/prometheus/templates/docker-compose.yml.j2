@@ -1,0 +1,25 @@
+services:
+  prometheus:
+    image: prom/prometheus:{{ prometheus_version }}
+    container_name: prometheus
+    restart: unless-stopped
+    user: root
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.retention.time={{ prometheus_retention }}"
+      - "--web.enable-lifecycle"
+      - "--web.listen-address=0.0.0.0:9090"
+    ports:
+      - "{{ prometheus_port }}:9090"
+    volumes:
+      - "{{ prometheus_config_dir }}/prometheus.yml:/etc/prometheus/prometheus.yml:ro"
+      - "{{ prometheus_config_dir }}/rules.yml:/etc/prometheus/rules.yml:ro"
+      - "{{ prometheus_data_dir }}:/prometheus"
+    networks:
+      - "{{ prometheus_docker_network }}"
+
+networks:
+  {{ prometheus_docker_network }}:
+    name: "{{ prometheus_docker_network }}"
+    driver: bridge

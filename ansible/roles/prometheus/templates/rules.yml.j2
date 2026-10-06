@@ -1,0 +1,69 @@
+groups:
+  - name: host
+    interval: 30s
+    rules:
+      - alert: InstanceDown
+        expr: up == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Instance {{ '{{' }} $labels.instance {{ '}}' }} down"
+          description: "Target has been down for more than 2 minutes."
+
+      - alert: HighCPULoad
+        expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU load on {{ '{{' }} $labels.instance {{ '}}' }}"
+          description: "CPU load > 80% for 5 minutes."
+
+      - alert: HighMemoryUsage
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High memory usage on {{ '{{' }} $labels.instance {{ '}}' }}"
+          description: "Memory usage > 85% for 5 minutes."
+
+      - alert: DiskSpaceLow
+        expr: (1 - (node_filesystem_avail_bytes{fstype!~"tmpfs|overlay"} / node_filesystem_size_bytes{fstype!~"tmpfs|overlay"})) * 100 > 85
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Low disk space on {{ '{{' }} $labels.instance {{ '}}' }}"
+          description: "Disk usage > 85% for 10 minutes."
+
+  - name: application
+    interval: 30s
+    rules:
+      - alert: AppDown
+        expr: up{job="spring-actuator"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Bulletins app is down"
+          description: "The Spring Boot application target is unreachable."
+
+      - alert: HighHttpErrorRate
+        expr: sum(rate(http_server_requests_seconds_count{status=~"5.."}[5m])) > 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High 5xx error rate"
+          description: "More than 1 5xx request per second in the last 5 minutes."
+
+      - alert: HikariPoolExhausted
+        expr: hikaricp_connections_pending > 5
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "HikariCP pool has pending connections"
+          description: "More than 5 pending DB connection requests for 2 minutes."

@@ -1,0 +1,64 @@
+---
+- name: Create prometheus directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: "0755"
+  loop:
+    - "{{ prometheus_dir }}"
+    - "{{ prometheus_data_dir }}"
+    - "{{ prometheus_config_dir }}"
+
+- name: Render prometheus.yml
+  ansible.builtin.template:
+    src: prometheus.yml.j2
+    dest: "{{ prometheus_config_dir }}/prometheus.yml"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: "0644"
+  notify: reload prometheus
+
+- name: Render rules.yml
+  ansible.builtin.template:
+    src: rules.yml.j2
+    dest: "{{ prometheus_config_dir }}/rules.yml"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: "0644"
+  notify: reload prometheus
+
+- name: Render docker-compose.yml
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: "{{ prometheus_dir }}/docker-compose.yml"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: "0644"
+
+- name: Pull prometheus image
+  community.docker.docker_compose_v2:
+    project_src: "{{ prometheus_dir }}"
+    files:
+      - docker-compose.yml
+    pull: always
+    state: present
+
+- name: Start prometheus
+  community.docker.docker_compose_v2:
+    project_src: "{{ prometheus_dir }}"
+    files:
+      - docker-compose.yml
+    state: present
+    recreate: auto
+
+- name: Wait for Prometheus to be ready
+  ansible.builtin.uri:
+    url: "http://127.0.0.1:{{ prometheus_port }}/-/ready"
+    status_code: 200
+  register: prom_ready
+  until: prom_ready.status == 200
+  retries: 30
+  delay: 3
+  changed_when: false
