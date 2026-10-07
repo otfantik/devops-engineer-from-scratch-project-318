@@ -1,0 +1,94 @@
+---
+- name: Create grafana directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: "0755"
+  loop:
+    - "{{ grafana_dir }}"
+    - "{{ grafana_data_dir }}"
+    - "{{ grafana_provisioning_dir }}"
+    - "{{ grafana_provisioning_dir }}/datasources"
+    - "{{ grafana_provisioning_dir }}/dashboards"
+    - "{{ grafana_dashboards_dir }}"
+
+- name: Render grafana docker-compose.yml
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: "{{ grafana_dir }}/docker-compose.yml"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: "0644"
+  notify: restart grafana
+
+- name: Render prometheus datasource
+  ansible.builtin.template:
+    src: provisioning/datasources/prometheus.yml.j2
+    dest: "{{ grafana_provisioning_dir }}/datasources/prometheus.yml"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: "0644"
+  notify: restart grafana
+
+- name: Render loki datasource
+  ansible.builtin.template:
+    src: provisioning/datasources/loki.yml.j2
+    dest: "{{ grafana_provisioning_dir }}/datasources/loki.yml"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: "0644"
+  notify: restart grafana
+
+- name: Render dashboards provisioning config
+  ansible.builtin.template:
+    src: provisioning/dashboards/default.yml.j2
+    dest: "{{ grafana_provisioning_dir }}/dashboards/default.yml"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: "0644"
+  notify: restart grafana
+
+- name: Copy dashboards JSON files
+  ansible.builtin.copy:
+    src: "dashboards/"
+    dest: "{{ grafana_dashboards_dir }}/"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: "0644"
+  notify: restart grafana
+
+- name: Allow Grafana port through UFW
+  community.general.ufw:
+    rule: allow
+    port: "{{ grafana_port }}"
+    proto: tcp
+    from_ip: "{{ grafana_ufw_source }}"
+  when: grafana_open_firewall | bool
+
+- name: Pull grafana image
+  community.docker.docker_compose_v2:
+    project_src: "{{ grafana_dir }}"
+    files:
+      - docker-compose.yml
+    pull: always
+    state: present
+
+- name: Start grafana
+  community.docker.docker_compose_v2:
+    project_src: "{{ grafana_dir }}"
+    files:
+      - docker-compose.yml
+    state: present
+    recreate: auto
+
+- name: Wait for Grafana to be ready
+  ansible.builtin.uri:
+    url: "http://127.0.0.1:{{ grafana_port }}/api/health"
+    status_code: 200
+  register: grafana_ready
+  until: grafana_ready.status == 200
+  retries: 30
+  delay: 3
+  changed_when: false

@@ -1,0 +1,12 @@
+---
+grafana_version: "11.2.0"
+grafana_dir: /opt/grafana
+grafana_data_dir: /opt/grafana/data
+grafana_provisioning_dir: /opt/grafana/provisioning
+grafana_dashboards_dir: /opt/grafana/dashboards
+grafana_docker_network: monitoring
+grafana_port: 3000
+
+# UFW rule for Grafana port
+grafana_open_firewall: true
+grafana_ufw_source: "0.0.0.0/0"

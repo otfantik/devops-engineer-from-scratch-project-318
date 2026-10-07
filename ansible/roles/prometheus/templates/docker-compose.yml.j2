@@ -22,4 +22,5 @@ services:
 networks:
   {{ prometheus_docker_network }}:
     name: "{{ prometheus_docker_network }}"
+    external: true
     driver: bridge

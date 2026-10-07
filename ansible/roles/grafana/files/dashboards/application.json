@@ -1,0 +1,142 @@
+{
+    "annotations": { "list": [] },
+    "editable": true,
+    "graphTooltip": 1,
+    "id": null,
+    "links": [],
+    "panels": [
+      {
+        "datasource": { "type": "prometheus", "uid": "prometheus" },
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [
+              { "options": { "0": { "color": "red", "text": "DOWN" }, "1": { "color": "green", "text": "UP" } }, "type": "value" }
+            ],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "color": "red", "value": null },
+                { "color": "green", "value": 1 }
+              ]
+            }
+          },
+          "overrides": []
+        },
+        "gridPos": { "h": 6, "w": 6, "x": 0, "y": 0 },
+        "id": 1,
+        "options": {
+          "colorMode": "background",
+          "graphMode": "none",
+          "justifyMode": "auto",
+          "orientation": "auto",
+          "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+          "textMode": "auto"
+        },
+        "targets": [
+          { "expr": "up{job=\"spring-actuator\"}", "legendFormat": "app", "refId": "A" },
+          { "expr": "up{job=\"node\"}", "legendFormat": "node", "refId": "B" }
+        ],
+        "title": "Targets Status",
+        "type": "stat"
+      },
+      {
+        "datasource": { "type": "prometheus", "uid": "prometheus" },
+        "fieldConfig": { "defaults": { "unit": "s" }, "overrides": [] },
+        "gridPos": { "h": 6, "w": 6, "x": 6, "y": 0 },
+        "id": 2,
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area",
+          "justifyMode": "auto",
+          "orientation": "auto",
+          "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }
+        },
+        "targets": [
+          { "expr": "process_uptime_seconds{application=\"bulletins\"}", "legendFormat": "uptime", "refId": "A" }
+        ],
+        "title": "App Uptime",
+        "type": "stat"
+      },
+      {
+        "datasource": { "type": "prometheus", "uid": "prometheus" },
+        "fieldConfig": { "defaults": { "unit": "bytes" }, "overrides": [] },
+        "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+        "id": 3,
+        "options": {
+          "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
+          "tooltip": { "mode": "single", "sort": "none" }
+        },
+        "targets": [
+          {
+            "expr": "jvm_memory_used_bytes{application=\"bulletins\", area=\"heap\"}",
+            "legendFormat": "{{id}}",
+            "refId": "A"
+          }
+        ],
+        "title": "JVM Heap Memory",
+        "type": "timeseries"
+      },
+      {
+        "datasource": { "type": "prometheus", "uid": "prometheus" },
+        "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] },
+        "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+        "id": 4,
+        "options": {
+          "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
+          "tooltip": { "mode": "single", "sort": "none" }
+        },
+        "targets": [
+          { "expr": "jvm_threads_live_threads{application=\"bulletins\"}", "legendFormat": "live", "refId": "A" },
+          { "expr": "jvm_threads_daemon_threads{application=\"bulletins\"}", "legendFormat": "daemon", "refId": "B" }
+        ],
+        "title": "JVM Threads",
+        "type": "timeseries"
+      },
+      {
+        "datasource": { "type": "prometheus", "uid": "prometheus" },
+        "fieldConfig": { "defaults": { "unit": "short" }, "overrides": [] },
+        "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+        "id": 5,
+        "options": {
+          "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
+          "tooltip": { "mode": "single", "sort": "none" }
+        },
+        "targets": [
+          { "expr": "hikaricp_connections_active{application=\"bulletins\"}", "legendFormat": "active", "refId": "A" },
+          { "expr": "hikaricp_connections_idle{application=\"bulletins\"}", "legendFormat": "idle", "refId": "B" },
+          { "expr": "hikaricp_connections_pending{application=\"bulletins\"}", "legendFormat": "pending", "refId": "C" },
+          { "expr": "hikaricp_connections_max{application=\"bulletins\"}", "legendFormat": "max", "refId": "D" }
+        ],
+        "title": "HikariCP Connections",
+        "type": "timeseries"
+      },
+      {
+        "datasource": { "type": "prometheus", "uid": "prometheus" },
+        "fieldConfig": { "defaults": { "unit": "reqps" }, "overrides": [] },
+        "gridPos": { "h": 8, "w": 24, "x": 0, "y": 16 },
+        "id": 6,
+        "options": {
+          "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
+          "tooltip": { "mode": "multi", "sort": "desc" }
+        },
+        "targets": [
+          {
+            "expr": "sum by(uri) (rate(http_server_requests_seconds_count{application=\"bulletins\"}[5m]))",
+            "legendFormat": "{{uri}}",
+            "refId": "A"
+          }
+        ],
+        "title": "HTTP Request Rate by URI",
+        "type": "timeseries"
+      }
+    ],
+    "refresh": "30s",
+    "schemaVersion": 39,
+    "tags": ["bulletins", "application"],
+    "templating": { "list": [] },
+    "time": { "from": "now-6h", "to": "now" },
+    "timezone": "browser",
+    "title": "Bulletins — Application",
+    "uid": "bulletins-application",
+    "version": 1
+  }

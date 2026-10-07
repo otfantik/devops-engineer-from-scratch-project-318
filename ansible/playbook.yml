@@ -59,3 +59,11 @@
   become: true
   roles:
     - prometheus
+
+- name: Install Grafana
+  hosts: monitoring
+  become: true
+  vars_files:
+    - vault.yml
+  roles:
+    - grafana

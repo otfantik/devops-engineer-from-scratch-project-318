@@ -1,0 +1,7 @@
+---
+- name: restart grafana
+  community.docker.docker_compose_v2:
+    project_src: "{{ grafana_dir }}"
+    files:
+      - docker-compose.yml
+    state: restarted
