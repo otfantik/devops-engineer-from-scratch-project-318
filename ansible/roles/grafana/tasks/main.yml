@@ -13,6 +13,8 @@
     - "{{ grafana_provisioning_dir }}/datasources"
     - "{{ grafana_provisioning_dir }}/dashboards"
     - "{{ grafana_dashboards_dir }}"
+    - "{{ grafana_provisioning_dir }}/alerting"
+
 
 - name: Render grafana docker-compose.yml
   ansible.builtin.template:
@@ -45,6 +47,41 @@
   ansible.builtin.template:
     src: provisioning/dashboards/default.yml.j2
     dest: "{{ grafana_provisioning_dir }}/dashboards/default.yml"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: "0644"
+  notify: restart grafana
+
+- name: Ensure alerting provisioning dir exists
+  ansible.builtin.file:
+    path: "{{ grafana_provisioning_dir }}/alerting"
+    state: directory
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: "0755"
+
+- name: Render contact points
+  ansible.builtin.template:
+    src: provisioning/alerting/contact-points.yml.j2
+    dest: "{{ grafana_provisioning_dir }}/alerting/contact-points.yml"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: "0644"
+  notify: restart grafana
+
+- name: Render notification policies
+  ansible.builtin.template:
+    src: provisioning/alerting/policies.yml.j2
+    dest: "{{ grafana_provisioning_dir }}/alerting/policies.yml"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: "0644"
+  notify: restart grafana
+
+- name: Render alert rules
+  ansible.builtin.template:
+    src: provisioning/alerting/rules.yml.j2
+    dest: "{{ grafana_provisioning_dir }}/alerting/rules.yml"
     owner: "{{ ansible_user }}"
     group: "{{ ansible_user }}"
     mode: "0644"

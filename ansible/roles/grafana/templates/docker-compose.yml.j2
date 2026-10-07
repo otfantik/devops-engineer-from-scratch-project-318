@@ -11,8 +11,16 @@ services:
       GF_SECURITY_ADMIN_PASSWORD: "{{ grafana_admin_password }}"
       GF_USERS_ALLOW_SIGN_UP: "false"
       GF_AUTH_ANONYMOUS_ENABLED: "false"
-      GF_INSTALL_PLUGINS: ""
       GF_PATHS_PROVISIONING: /etc/grafana/provisioning
+      GF_SMTP_ENABLED: "{{ grafana_smtp_enabled | default(false) | lower }}"
+      GF_SMTP_HOST: "{{ grafana_smtp_host }}"
+      GF_SMTP_USER: "{{ grafana_smtp_user }}"
+      GF_SMTP_PASSWORD: "{{ grafana_smtp_password }}"
+      GF_SMTP_FROM_ADDRESS: "{{ grafana_smtp_from_address }}"
+      GF_SMTP_FROM_NAME: "{{ grafana_smtp_from_name }}"
+      GF_SMTP_SKIP_VERIFY: "false"
+      GF_UNIFIED_ALERTING_ENABLED: "true"
+      GF_ALERTING_ENABLED: "false"
     volumes:
       - "{{ grafana_data_dir }}:/var/lib/grafana"
       - "{{ grafana_provisioning_dir }}:/etc/grafana/provisioning:ro"

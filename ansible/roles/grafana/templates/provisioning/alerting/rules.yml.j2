@@ -1,0 +1,319 @@
+apiVersion: 1
+
+groups:
+  - orgId: 1
+    name: bulletins-alerts
+    folder: Bulletins
+    interval: 1m
+    rules:
+
+      # === Availability ===
+      - uid: alert-instance-down
+        title: "InstanceDown — target unreachable"
+        condition: C
+        for: 2m
+        noDataState: Alerting
+        execErrState: Error
+        notification_settings:
+          receiver: email-admin
+        labels:
+          severity: critical
+          service: infrastructure
+        annotations:
+          summary: "One or more Prometheus targets are down"
+          description: "At least one Prometheus target has been unreachable for more than 2 minutes. Check Prometheus targets page."
+        data:
+          - refId: A
+            relativeTimeRange: { from: 300, to: 0 }
+            datasourceUid: prometheus
+            model:
+              editorMode: code
+              expr: min(up)
+              instant: true
+              intervalMs: 1000
+              maxDataPoints: 43200
+              range: false
+              refId: A
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator: { params: [1], type: lt }
+                  operator: { type: and }
+                  query: { params: [A] }
+                  reducer: { type: last }
+                  type: query
+              datasource: { type: __expr__, uid: __expr__ }
+              expression: A
+              refId: C
+              type: threshold
+
+      # === Application ===
+      - uid: alert-app-down
+        title: "AppDown — Spring Boot unreachable"
+        condition: C
+        for: 1m
+        noDataState: Alerting
+        execErrState: Error
+        notification_settings:
+          receiver: email-admin
+        labels:
+          severity: critical
+          service: bulletins-app
+        annotations:
+          summary: "Bulletins app is DOWN"
+          description: "Spring Boot Actuator target is unreachable for more than 1 minute."
+        data:
+          - refId: A
+            relativeTimeRange: { from: 300, to: 0 }
+            datasourceUid: prometheus
+            model:
+              editorMode: code
+              expr: up{job="spring-actuator"}
+              instant: true
+              range: false
+              refId: A
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator: { params: [1], type: lt }
+                  operator: { type: and }
+                  query: { params: [A] }
+                  reducer: { type: last }
+                  type: query
+              datasource: { type: __expr__, uid: __expr__ }
+              expression: A
+              refId: C
+              type: threshold
+
+      # === Errors ===
+      - uid: alert-high-5xx
+        title: "High5xxRate — application errors"
+        condition: C
+        for: 5m
+        noDataState: OK
+        execErrState: Error
+        notification_settings:
+          receiver: email-admin
+        labels:
+          severity: warning
+          service: bulletins-app
+        annotations:
+          summary: "High 5xx error rate (> 0.1 req/s for 5m)"
+          description: "More than 0.1 5xx responses per second in the last 5 minutes."
+        data:
+          - refId: A
+            relativeTimeRange: { from: 600, to: 0 }
+            datasourceUid: prometheus
+            model:
+              editorMode: code
+              expr: sum(rate(http_server_requests_seconds_count{status=~"5.."}[5m]))
+              instant: true
+              range: false
+              refId: A
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator: { params: [0.1], type: gt }
+                  operator: { type: and }
+                  query: { params: [A] }
+                  reducer: { type: last }
+                  type: query
+              datasource: { type: __expr__, uid: __expr__ }
+              expression: A
+              refId: C
+              type: threshold
+
+      - uid: alert-high-latency
+        title: "HighLatency — p95 > 1s"
+        condition: C
+        for: 5m
+        noDataState: OK
+        execErrState: Error
+        notification_settings:
+          receiver: email-admin
+        labels:
+          severity: warning
+          service: bulletins-app
+        annotations:
+          summary: "HTTP p95 latency above 1 second"
+          description: "95th percentile request latency is above 1s for 5 minutes."
+        data:
+          - refId: A
+            relativeTimeRange: { from: 600, to: 0 }
+            datasourceUid: prometheus
+            model:
+              editorMode: code
+              expr: histogram_quantile(0.95, sum by(le) (rate(http_server_requests_seconds_bucket{application="bulletins"}[5m])))
+              instant: true
+              range: false
+              refId: A
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator: { params: [1], type: gt }
+                  operator: { type: and }
+                  query: { params: [A] }
+                  reducer: { type: last }
+                  type: query
+              datasource: { type: __expr__, uid: __expr__ }
+              expression: A
+              refId: C
+              type: threshold
+
+      # === Resources ===
+      - uid: alert-high-cpu
+        title: "HighCPU — CPU > 80% for 5m"
+        condition: C
+        for: 5m
+        noDataState: OK
+        execErrState: Error
+        notification_settings:
+          receiver: email-admin
+        labels:
+          severity: warning
+          service: infrastructure
+        annotations:
+          summary: "High CPU usage on {{ '{{' }} $labels.instance {{ '}}' }}"
+          description: "CPU load > 80% for 5 minutes."
+        data:
+          - refId: A
+            relativeTimeRange: { from: 600, to: 0 }
+            datasourceUid: prometheus
+            model:
+              editorMode: code
+              expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)
+              instant: true
+              range: false
+              refId: A
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator: { params: [80], type: gt }
+                  operator: { type: and }
+                  query: { params: [A] }
+                  reducer: { type: last }
+                  type: query
+              datasource: { type: __expr__, uid: __expr__ }
+              expression: A
+              refId: C
+              type: threshold
+
+      - uid: alert-high-memory
+        title: "HighMemory — RAM > 85% for 5m"
+        condition: C
+        for: 5m
+        noDataState: OK
+        execErrState: Error
+        notification_settings:
+          receiver: email-admin
+        labels:
+          severity: warning
+          service: infrastructure
+        annotations:
+          summary: "High memory usage on {{ '{{' }} $labels.instance {{ '}}' }}"
+          description: "Memory usage > 85% for 5 minutes."
+        data:
+          - refId: A
+            relativeTimeRange: { from: 600, to: 0 }
+            datasourceUid: prometheus
+            model:
+              editorMode: code
+              expr: 100 * (1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)
+              instant: true
+              range: false
+              refId: A
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator: { params: [85], type: gt }
+                  operator: { type: and }
+                  query: { params: [A] }
+                  reducer: { type: last }
+                  type: query
+              datasource: { type: __expr__, uid: __expr__ }
+              expression: A
+              refId: C
+              type: threshold
+
+      - uid: alert-disk-low
+        title: "DiskSpaceLow — root > 85% used"
+        condition: C
+        for: 10m
+        noDataState: OK
+        execErrState: Error
+        notification_settings:
+          receiver: email-admin
+        labels:
+          severity: warning
+          service: infrastructure
+        annotations:
+          summary: "Low disk space on {{ '{{' }} $labels.instance {{ '}}' }}"
+          description: "Root filesystem usage > 85% for 10 minutes."
+        data:
+          - refId: A
+            relativeTimeRange: { from: 900, to: 0 }
+            datasourceUid: prometheus
+            model:
+              editorMode: code
+              expr: 100 - (node_filesystem_avail_bytes{mountpoint="/", fstype!~"tmpfs|overlay"} / node_filesystem_size_bytes{mountpoint="/", fstype!~"tmpfs|overlay"}) * 100
+              instant: true
+              range: false
+              refId: A
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator: { params: [85], type: gt }
+                  operator: { type: and }
+                  query: { params: [A] }
+                  reducer: { type: last }
+                  type: query
+              datasource: { type: __expr__, uid: __expr__ }
+              expression: A
+              refId: C
+              type: threshold
+
+      # === Missing metrics ===ыныеуь
+      - uid: alert-no-metrics
+        title: "NoMetrics — target missing for 5m"
+        condition: C
+        for: 5m
+        noDataState: Alerting
+        execErrState: Error
+        notification_settings:
+          receiver: email-admin
+        labels:
+          severity: critical
+          service: infrastructure
+        annotations:
+          summary: "No metrics from {{ '{{' }} $labels.job {{ '}}' }}"
+          description: "Prometheus hasn't received metrics from one or more targets for 5 minutes."
+        data:
+          - refId: A
+            relativeTimeRange: { from: 600, to: 0 }
+            datasourceUid: prometheus
+            model:
+              editorMode: code
+              expr: count(up)
+              instant: true
+              range: false
+              refId: A
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator: { params: [1], type: lt }
+                  operator: { type: and }
+                  query: { params: [A] }
+                  reducer: { type: last }
+                  type: query
+              datasource: { type: __expr__, uid: __expr__ }
+              expression: A
+              refId: C
+              type: threshold
