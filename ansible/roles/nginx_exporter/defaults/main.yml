@@ -1,0 +1,18 @@
+---
+nginx_exporter_version: "1.4.0"
+nginx_exporter_port: 9113
+nginx_exporter_user: nginx_exporter
+nginx_exporter_group: nginx_exporter
+nginx_exporter_install_dir: /usr/local/bin
+nginx_exporter_listen_address: "0.0.0.0"
+nginx_exporter_stub_status_url: "http://127.0.0.1:8081/stub_status"
+
+# Arch mapping
+nginx_exporter_arch: "{{ 'arm64' if ansible_architecture == 'aarch64' else 'amd64' }}"
+
+# Archive URL
+nginx_exporter_archive_url: >-
+  https://github.com/nginx/nginx-prometheus-exporter/releases/download/v{{ nginx_exporter_version }}/nginx-prometheus-exporter_{{ nginx_exporter_version }}_linux_{{ nginx_exporter_arch }}.tar.gz
+
+# UFW rule: allow access from VPC subnet
+nginx_exporter_ufw_source: "10.0.0.0/24"

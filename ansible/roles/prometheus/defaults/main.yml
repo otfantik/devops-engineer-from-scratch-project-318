@@ -41,3 +41,12 @@ prometheus_scrape_configs:
     labels:
       service: bulletins-app
       host: bulletins-vm
+
+  - job_name: nginx
+    targets:
+      - "{{ app_internal_ip }}:9113"
+    metrics_path: /metrics
+    scheme: http
+    labels:
+      service: nginx
+      host: bulletins-vm

@@ -1,0 +1,22 @@
+[Unit]
+Description=Nginx Prometheus Exporter
+Documentation=https://github.com/nginx/nginx-prometheus-exporter
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User={{ nginx_exporter_user }}
+Group={{ nginx_exporter_group }}
+ExecStart={{ nginx_exporter_install_dir }}/nginx-prometheus-exporter \
+  --nginx.scrape-uri={{ nginx_exporter_stub_status_url }} \
+  --web.listen-address={{ nginx_exporter_listen_address }}:{{ nginx_exporter_port }}
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

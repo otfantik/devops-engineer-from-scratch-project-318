@@ -48,6 +48,12 @@
   roles:
     - node_exporter
 
+- name: Install Nginx Prometheus Exporter
+  hosts: app
+  become: true
+  roles:
+    - nginx_exporter
+    
 - name: Configure monitoring VM
   hosts: monitoring
   become: true
