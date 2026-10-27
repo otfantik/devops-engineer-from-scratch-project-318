@@ -42,29 +42,29 @@ Infrastructure-as-Code для развёртывания приложения [B
 
 ## Развёртывание с нуля
 
-### 1. Before start
+## 1. Before start
 
 ```bash
-# SSH-ключ
+#№№ SSH-ключ
 ls ~/.ssh/id_ed25519.pub || ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519
 
-# Ansible + коллекции
+#№№ Ansible + коллекции
 brew install ansible ansible-lint
 git clone https://github.com/otfantik/devops-engineer-from-scratch-project-318.git
 cd devops-engineer-from-scratch-project-318/ansible
 ansible-galaxy collection install -r requirements.yml
 
-### 2. Inventory
+## 2. Inventory
 cp inventory.example.yml inventory.yml
 $EDITOR inventory.yml
 Заполни ansible_host для bulletins-vm и monitoring-vm, ansible_user, путь к ключу.
 
-### 3. Vault
+## 3. Vault
 # Пароль
 echo "your-strong-password" > .vault_pass
 chmod 600 .vault_pass
 
-# Секреты
+#№№ Секреты
 ansible-vault edit vault.yml
 Переменные в vault.yml:
 
@@ -75,20 +75,18 @@ TLS	domain_name, certbot_email
 Grafana	grafana_admin_user, grafana_admin_password
 SMTP для алертов	grafana_smtp_host, grafana_smtp_user, grafana_smtp_password, grafana_smtp_from_address, grafana_smtp_from_name, grafana_alert_email_to
 
-### 4. Deploy
+## 4. Deploy
 
 cd ..
 make deploy
 
-### 5. Test
+## 5. Test
 
 make test     # ping + health checks
 make smoke    # curl всех сервисов
 make lint     # ansible-lint
 
-### INFO
-
-## Справочник
+## INFO
 
 ### Серверы
 
@@ -153,7 +151,7 @@ make lint     # ansible-lint
 | Spring Actuator | 9090 | `http_server_requests_seconds_count{status=...}`, `jvm_memory_used_bytes`, `jvm_threads_live_threads`, `hikaricp_connections_active`, `process_uptime_seconds` |
 | nginx_exporter | 9113 | `nginx_up`, `nginx_http_requests_total`, `nginx_connections_active/reading/writing/waiting` |
 
-Проверка:
+### Проверка:
 
 ```bash
 # Все Prometheus-таргеты UP
@@ -206,7 +204,7 @@ LogAppErrors	docker logs: ERROR count > 10 за 5m	5m	warning
 Alert rules: http://93.77.179.75:3000/alerting/list
 Notification history: http://93.77.179.75:3000/alerting/notifications
 
-## Makefile
+### Makefile
 
 | Команда | Назначение |
 |---|---|
