@@ -1,0 +1,28 @@
+---
+profile: basic
+exclude_paths:
+  - ansible/vault.yml
+skip_list:
+  - yaml[line-length]
+  - yaml[truthy]
+  - no-changed-when
+  - risky-file-permissions
+  - risky-shell-pipe
+  - command-instead-of-shell
+  - command-instead-of-module
+  - no-handler
+  - name[casing]
+  - name[template]
+  - ignore-errors
+  - fqcn[action-core]
+  - fqcn[action]
+  - fqcn[deep]
+  - key-order[task]
+  - args[module]
+  - jinja[spacing]
+  - jinja[invalid]
+  - var-naming[no-role-prefix]
+  - var-naming[no-reserved]
+  - var-naming[pattern]
+warn_list:
+  - experimental
