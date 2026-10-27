@@ -1,0 +1,8 @@
+---
+loki_version: "3.2.0"
+loki_dir: /opt/loki
+loki_data_dir: /opt/loki/data
+loki_config_dir: /opt/loki/config
+loki_port: 3100
+loki_retention: "168h"
+loki_docker_network: monitoring

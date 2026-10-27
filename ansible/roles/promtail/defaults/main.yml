@@ -1,0 +1,13 @@
+---
+promtail_version: "3.2.0"
+promtail_dir: /opt/promtail
+promtail_config_dir: /opt/promtail/config
+promtail_positions_dir: /opt/promtail/positions
+promtail_loki_url: "http://10.0.0.34:3100/loki/api/v1/push"
+
+promtail_env: production
+promtail_app: bulletins
+promtail_host: bulletins-vm
+
+promtail_docker_logs_path: /var/lib/docker/containers
+promtail_nginx_logs_path: /var/log/nginx

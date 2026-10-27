@@ -1,0 +1,193 @@
+{
+    "annotations": { "list": [] },
+    "editable": true,
+    "graphTooltip": 1,
+    "id": null,
+    "links": [],
+    "panels": [
+      {
+        "datasource": { "type": "loki", "uid": "loki" },
+        "fieldConfig": {
+          "defaults": {
+            "custom": { "lineWidth": 1, "fillOpacity": 0, "showPoints": "never" },
+            "unit": "short"
+          },
+          "overrides": []
+        },
+        "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+        "id": 1,
+        "options": {
+          "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
+          "tooltip": { "mode": "multi", "sort": "desc" }
+        },
+        "targets": [
+          {
+            "expr": "sum(count_over_time({job=\"docker\"} |= \"ERROR\" [1m]))",
+            "refId": "A",
+            "legendFormat": "ERROR/s"
+          },
+          {
+            "expr": "sum(count_over_time({job=\"docker\"} |= \"WARN\" [1m]))",
+            "refId": "B",
+            "legendFormat": "WARN/s"
+          }
+        ],
+        "title": "App Log Rate by Level (ERROR/WARN)",
+        "type": "timeseries"
+      },
+      {
+        "datasource": { "type": "loki", "uid": "loki" },
+        "fieldConfig": {
+          "defaults": { "unit": "short", "custom": { "lineWidth": 1, "fillOpacity": 0, "showPoints": "never" } },
+          "overrides": []
+        },
+        "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+        "id": 2,
+        "options": {
+          "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
+          "tooltip": { "mode": "multi", "sort": "desc" }
+        },
+        "targets": [
+          {
+            "expr": "sum(count_over_time({job=\"nginx-access\"} | json | status >= 500 [1m]))",
+            "refId": "A",
+            "legendFormat": "5xx/s"
+          },
+          {
+            "expr": "sum(count_over_time({job=\"nginx-access\"} | json | status >= 400 and status < 500 [1m]))",
+            "refId": "B",
+            "legendFormat": "4xx/s"
+          }
+        ],
+        "title": "Nginx HTTP Error Rate (4xx/5xx)",
+        "type": "timeseries"
+      },
+      {
+        "datasource": { "type": "loki", "uid": "loki" },
+        "fieldConfig": {
+          "defaults": { "unit": "reqps", "custom": { "lineWidth": 1, "fillOpacity": 0, "showPoints": "never" } },
+          "overrides": []
+        },
+        "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+        "id": 3,
+        "options": {
+          "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true },
+          "tooltip": { "mode": "multi", "sort": "desc" }
+        },
+        "targets": [
+          {
+            "expr": "sum(rate({job=\"nginx-access\"}[1m]))",
+            "refId": "A",
+            "legendFormat": "requests/s"
+          }
+        ],
+        "title": "Nginx Request Rate",
+        "type": "timeseries"
+      },
+      {
+        "datasource": { "type": "loki", "uid": "loki" },
+        "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+        "id": 4,
+        "options": {
+          "showTime": true,
+          "wrapLogMessage": true,
+          "sortOrder": "Descending",
+          "enableLogDetails": true
+        },
+        "targets": [
+          {
+            "expr": "{job=\"docker\"} |= \"ERROR\"",
+            "refId": "A"
+          }
+        ],
+        "title": "App ERROR logs (last 6h)",
+        "type": "logs"
+      },
+      {
+        "datasource": { "type": "loki", "uid": "loki" },
+        "gridPos": { "h": 10, "w": 24, "x": 0, "y": 16 },
+        "id": 5,
+        "options": {
+          "showTime": true,
+          "wrapLogMessage": true,
+          "sortOrder": "Descending",
+          "enableLogDetails": true
+        },
+        "targets": [
+          {
+            "expr": "{job=\"nginx-access\"} | json | status >= 400",
+            "refId": "A"
+          }
+        ],
+        "title": "Nginx 4xx/5xx logs (last 6h)",
+        "type": "logs"
+      },
+      {
+        "datasource": { "type": "loki", "uid": "loki" },
+        "gridPos": { "h": 8, "w": 12, "x": 0, "y": 26 },
+        "id": 6,
+        "options": {
+          "showTime": true,
+          "wrapLogMessage": true,
+          "sortOrder": "Descending",
+          "enableLogDetails": true
+        },
+        "targets": [
+          {
+            "expr": "{job=\"nginx-access\"} | json | request_time > 0.5",
+            "refId": "A"
+          }
+        ],
+        "title": "Slow nginx requests (> 0.5s)",
+        "type": "logs"
+      },
+      {
+        "datasource": { "type": "loki", "uid": "loki" },
+        "gridPos": { "h": 8, "w": 12, "x": 12, "y": 26 },
+        "id": 7,
+        "options": {
+          "showTime": true,
+          "wrapLogMessage": true,
+          "sortOrder": "Descending",
+          "enableLogDetails": true
+        },
+        "targets": [
+          {
+            "expr": "{job=\"nginx-error\"}",
+            "refId": "A"
+          }
+        ],
+        "title": "Nginx error.log",
+        "type": "logs"
+      }
+    ],
+    "refresh": "30s",
+    "schemaVersion": 39,
+    "tags": ["bulletins", "logs"],
+    "templating": {
+      "list": [
+        {
+          "current": { "selected": false, "text": "All", "value": "$__all" },
+          "datasource": { "type": "loki", "uid": "loki" },
+          "definition": "label_values({job=\"docker\"}, container)",
+          "hide": 0,
+          "includeAll": true,
+          "label": "Container",
+          "multi": true,
+          "name": "container",
+          "options": [],
+          "query": { "query": "label_values({job=\"docker\"}, container)", "refId": "LokiVariableQueryEditor-VariableQuery" },
+          "refresh": 1,
+          "regex": "",
+          "skipUrlSync": false,
+          "sort": 1,
+          "type": "query"
+        }
+      ]
+    },
+    "time": { "from": "now-6h", "to": "now" },
+    "timezone": "browser",
+    "title": "Bulletins — Logs",
+    "uid": "bulletins-logs",
+    "version": 1
+  }

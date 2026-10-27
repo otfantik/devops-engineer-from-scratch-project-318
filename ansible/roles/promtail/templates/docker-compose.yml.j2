@@ -1,0 +1,21 @@
+services:
+  promtail:
+    image: grafana/promtail:{{ promtail_version }}
+    container_name: promtail
+    restart: unless-stopped
+    command:
+      - "-config.file=/etc/promtail/config.yml"
+    ports:
+      - "127.0.0.1:9080:9080"
+    volumes:
+      - "{{ promtail_config_dir }}/promtail-config.yml:/etc/promtail/config.yml:ro"
+      - "{{ promtail_positions_dir }}:/positions"
+      - "/var/lib/docker/containers:{{ promtail_docker_logs_path }}:ro"
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "{{ promtail_nginx_logs_path }}:{{ promtail_nginx_logs_path }}:ro"
+    networks:
+      - promtail-net
+
+networks:
+  promtail-net:
+    driver: bridge

@@ -1,0 +1,7 @@
+---
+- name: restart loki
+  community.docker.docker_compose_v2:
+    project_src: "{{ loki_dir }}"
+    files:
+      - docker-compose.yml
+    state: restarted

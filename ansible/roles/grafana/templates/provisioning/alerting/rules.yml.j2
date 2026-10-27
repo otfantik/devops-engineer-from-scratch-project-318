@@ -7,7 +7,6 @@ groups:
     interval: 1m
     rules:
 
-      # === Availability ===
       - uid: alert-instance-down
         title: "InstanceDown — target unreachable"
         condition: C
@@ -48,7 +47,6 @@ groups:
               refId: C
               type: threshold
 
-      # === Application ===
       - uid: alert-app-down
         title: "AppDown — Spring Boot unreachable"
         condition: C
@@ -87,7 +85,6 @@ groups:
               refId: C
               type: threshold
 
-      # === Errors ===
       - uid: alert-high-5xx
         title: "High5xxRate — application errors"
         condition: C
@@ -164,7 +161,6 @@ groups:
               refId: C
               type: threshold
 
-      # === Resources ===
       - uid: alert-high-cpu
         title: "HighCPU — CPU > 80% for 5m"
         condition: C
@@ -279,7 +275,6 @@ groups:
               refId: C
               type: threshold
 
-      # === Missing metrics ===ыныеуь
       - uid: alert-no-metrics
         title: "NoMetrics — target missing for 5m"
         condition: C
@@ -309,6 +304,77 @@ groups:
             model:
               conditions:
                 - evaluator: { params: [1], type: lt }
+                  operator: { type: and }
+                  query: { params: [A] }
+                  reducer: { type: last }
+                  type: query
+              datasource: { type: __expr__, uid: __expr__ }
+              expression: A
+              refId: C
+              type: threshold
+
+      - uid: alert-log-5xx-burst
+        title: "Log5xxBurst — 5xx in nginx logs"
+        condition: C
+        for: 2m
+        noDataState: OK
+        execErrState: Error
+        notification_settings:
+          receiver: email-admin
+        labels:
+          severity: warning
+          service: bulletins-app
+        annotations:
+          summary: "Burst of 5xx errors in nginx logs"
+          description: "More than 5 HTTP 5xx responses in the last 5 minutes (from nginx access logs)."
+        data:
+          - refId: A
+            relativeTimeRange: { from: 600, to: 0 }
+            datasourceUid: loki
+            model:
+              expr: sum(count_over_time({job="nginx-access"} | json | status >= 500 [5m]))
+              queryType: range
+              refId: A
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator: { params: [5], type: gt }
+                  operator: { type: and }
+                  query: { params: [A] }
+                  reducer: { type: last }
+                  type: query
+              datasource: { type: __expr__, uid: __expr__ }
+              expression: A
+              refId: C
+              type: threshold
+      - uid: alert-log-app-errors
+        title: "LogAppErrors — ERROR logs burst"
+        condition: C
+        for: 5m
+        noDataState: OK
+        execErrState: Error
+        notification_settings:
+          receiver: email-admin
+        labels:
+          severity: warning
+          service: bulletins-app
+        annotations:
+          summary: "Burst of ERROR logs in application"
+          description: "More than 10 ERROR log lines from bulletins-app in the last 5 minutes."
+        data:
+          - refId: A
+            relativeTimeRange: { from: 600, to: 0 }
+            datasourceUid: loki
+            model:
+              expr: sum(count_over_time({job="docker", container="bulletins-app"} |= "ERROR" [5m]))
+              queryType: range
+              refId: A
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              conditions:
+                - evaluator: { params: [10], type: gt }
                   operator: { type: and }
                   query: { params: [A] }
                   reducer: { type: last }

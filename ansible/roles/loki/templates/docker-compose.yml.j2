@@ -1,0 +1,20 @@
+services:
+  loki:
+    image: grafana/loki:{{ loki_version }}
+    container_name: loki
+    restart: unless-stopped
+    user: root
+    command:
+      - "-config.file=/etc/loki/config.yml"
+    ports:
+      - "{{ loki_port }}:{{ loki_port }}"
+    volumes:
+      - "{{ loki_config_dir }}/loki-config.yml:/etc/loki/config.yml:ro"
+      - "{{ loki_data_dir }}:/loki"
+    networks:
+      - "{{ loki_docker_network }}"
+
+networks:
+  {{ loki_docker_network }}:
+    name: "{{ loki_docker_network }}"
+    external: true

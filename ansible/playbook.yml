@@ -1,68 +1,70 @@
 ---
-- name: Configure bulletins VM
-  hosts: bulletins-vm
+- name: Configure application VM
+  hosts: app
   become: true
+  tags: [docker]
   roles:
     - docker
 
 - name: Deploy bulletins application
-  hosts: bulletins-vm
+  hosts: app
   become: true
   vars_files:
     - vault.yml
+  tags: [deploy, app]
   roles:
     - deploy
 
-# HTTP only, needed for ACME challenge
 - name: Setup nginx (HTTP only)
-  hosts: bulletins-vm
+  hosts: app
   become: true
   vars_files:
     - vault.yml
+  tags: [nginx]
   roles:
     - nginx
 
-# Obtain TLS certificate
 - name: Issue TLS certificate
-  hosts: bulletins-vm
+  hosts: app
   become: true
   vars_files:
     - vault.yml
+  tags: [certbot, tls]
   roles:
     - certbot
 
-# Re-render nginx with 443 block
 - name: Reconfigure nginx with TLS
-  hosts: bulletins-vm
+  hosts: app
   become: true
   vars_files:
     - vault.yml
+  tags: [nginx, tls]
   roles:
     - nginx
 
-# Host-level metrics
-- name: Install Prometheus Node Exporter
-  hosts: bulletins-vm
-  become: true
-  tags: [node_exporter]
-  roles:
-    - node_exporter
-
-- name: Install Nginx Prometheus Exporter
+- name: Install application server agents
   hosts: app
   become: true
+  tags: [agents]
   roles:
-    - nginx_exporter
-    
+    - role: node_exporter
+      tags: [node_exporter]
+    - role: nginx_exporter
+      tags: [nginx_exporter]
+    - role: promtail
+      tags: [promtail]
+
 - name: Configure monitoring VM
   hosts: monitoring
   become: true
+  tags: [docker]
   roles:
     - docker
 
 - name: Install Prometheus
   hosts: monitoring
   become: true
+  tags: [prometheus]
   roles:
     - prometheus
 
@@ -71,5 +73,13 @@
   become: true
   vars_files:
     - vault.yml
+  tags: [grafana]
   roles:
     - grafana
+
+- name: Install Loki
+  hosts: monitoring
+  become: true
+  tags: [loki]
+  roles:
+    - loki

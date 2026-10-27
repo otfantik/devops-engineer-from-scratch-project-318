@@ -1,0 +1,56 @@
+---
+- name: Create loki directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: "0755"
+  loop:
+    - "{{ loki_dir }}"
+    - "{{ loki_data_dir }}"
+    - "{{ loki_config_dir }}"
+
+- name: Render loki config
+  ansible.builtin.template:
+    src: loki-config.yml.j2
+    dest: "{{ loki_config_dir }}/loki-config.yml"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: "0644"
+  notify: restart loki
+
+- name: Render loki docker-compose.yml
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: "{{ loki_dir }}/docker-compose.yml"
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+    mode: "0644"
+  notify: restart loki
+
+- name: Pull loki image
+  community.docker.docker_compose_v2:
+    project_src: "{{ loki_dir }}"
+    files:
+      - docker-compose.yml
+    pull: always
+    state: present
+
+- name: Start loki
+  community.docker.docker_compose_v2:
+    project_src: "{{ loki_dir }}"
+    files:
+      - docker-compose.yml
+    state: present
+    recreate: auto
+
+- name: Wait for Loki to be ready
+  ansible.builtin.uri:
+    url: "http://127.0.0.1:{{ loki_port }}/ready"
+    status_code: 200
+  register: loki_ready
+  until: loki_ready.status == 200
+  retries: 30
+  delay: 3
+  changed_when: false
