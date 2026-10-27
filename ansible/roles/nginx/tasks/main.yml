@@ -55,4 +55,3 @@
     name: nginx
     state: started
     enabled: true
-

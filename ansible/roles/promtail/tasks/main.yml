@@ -53,4 +53,4 @@
   until: promtail_ready.status == 200
   retries: 30
   delay: 3
-  changed_when: false 
+  changed_when: false
