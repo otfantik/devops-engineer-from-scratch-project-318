@@ -48,12 +48,13 @@ SSH-ключ:
 
     ls ~/.ssh/id_ed25519.pub || ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519
 
-Ansible + коллекции:
+Ansible + зависимости:
 
     brew install ansible ansible-lint
     git clone https://github.com/otfantik/devops-engineer-from-scratch-project-318.git
     cd devops-engineer-from-scratch-project-318/ansible
     ansible-galaxy collection install -r requirements.yml
+    make deps
 
 ### 2. Инвентарь
 
