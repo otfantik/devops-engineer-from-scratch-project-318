@@ -11,4 +11,5 @@ roles:
   - name: nginxinc.nginx
     version: "0.26.0"
   - name: geerlingguy.certbot
-    version: ">=5.0.0"
+    version: "5.5.0"
+"
