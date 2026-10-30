@@ -15,14 +15,25 @@
   roles:
     - deploy
 
-- name: Setup nginx (HTTP only)
+- name: Install nginx (official)
+  hosts: app
+  become: true
+  tags: [nginx]
+  roles:
+    - role: nginxinc.nginx
+      nginx_type: opensource
+      nginx_install_from: nginx_repository
+      nginx_setup: install
+      nginx_start: true
+
+- name: Apply nginx config (HTTP only, for ACME)
   hosts: app
   become: true
   vars_files:
     - vault.yml
   tags: [nginx]
   roles:
-    - nginx
+    - app_nginx
 
 - name: Issue TLS certificate
   hosts: app
@@ -40,7 +51,7 @@
     - vault.yml
   tags: [nginx, tls]
   roles:
-    - nginx
+    - app_nginx
 
 - name: Install application server agents
   hosts: app

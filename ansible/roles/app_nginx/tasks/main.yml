@@ -1,0 +1,46 @@
+---
+- name: Check if TLS certificate exists
+  ansible.builtin.stat:
+    path: "/etc/letsencrypt/live/{{ domain_name }}/fullchain.pem"
+  register: nginx_cert_check
+
+- name: Set cert_exists fact
+  ansible.builtin.set_fact:
+    cert_exists: "{{ nginx_cert_check.stat.exists }}"
+
+- name: Remove old json_logs.conf
+  ansible.builtin.file:
+    path: /etc/nginx/conf.d/json_logs.conf
+    state: absent
+  notify: reload nginx
+
+- name: Render json_logs.conf
+  ansible.builtin.template:
+    src: json_logs.conf.j2
+    dest: /etc/nginx/conf.d/00_json_logs.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify: reload nginx
+
+- name: Render stub_status.conf
+  ansible.builtin.template:
+    src: stub_status.conf.j2
+    dest: /etc/nginx/conf.d/stub_status.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify: reload nginx
+
+- name: Render bulletins.conf
+  ansible.builtin.template:
+    src: bulletins.conf.j2
+    dest: /etc/nginx/conf.d/bulletins.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify: reload nginx
+
+- name: Validate nginx config
+  ansible.builtin.command: nginx -t
+  changed_when: false

@@ -1,0 +1,13 @@
+{% if nginx_stub_status_enabled | default(false) %}
+server {
+    listen {{ nginx_stub_status_host }}:{{ nginx_stub_status_port }};
+    server_name localhost;
+    access_log off;
+
+    location /stub_status {
+        stub_status;
+        allow 127.0.0.1;
+        deny all;
+    }
+}
+{% endif %}

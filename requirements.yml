@@ -7,4 +7,6 @@ collections:
   - name: community.general
     version: ">=8.0.0"
 
-roles: []
+roles:
+  - name: nginxinc.nginx
+    version: "0.26.0"

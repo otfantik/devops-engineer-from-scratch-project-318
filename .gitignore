@@ -11,3 +11,5 @@ ansible/inventory.yml
 # OS
 .DS_Store
 .ansible/
+ansible/roles/nginxinc.nginx/
+ansible/roles/nginxinc.nginx_config/
