@@ -9,8 +9,6 @@ prometheus_retention: "15d"
 prometheus_scrape_interval: "15s"
 prometheus_evaluation_interval: "15s"
 
-app_internal_ip: "10.0.0.23"
-
 prometheus_external_labels:
   environment: production
   cluster: bulletins
@@ -26,7 +24,7 @@ prometheus_scrape_configs:
 
   - job_name: node
     targets:
-      - "{{ app_internal_ip }}:9100"
+      - "{{ hostvars['bulletins-vm'].internal_ip }}:9100"
     metrics_path: /metrics
     scheme: http
     labels:
@@ -35,7 +33,7 @@ prometheus_scrape_configs:
 
   - job_name: spring-actuator
     targets:
-      - "{{ app_internal_ip }}:9090"
+      - "{{ hostvars['bulletins-vm'].internal_ip }}:9090"
     metrics_path: /actuator/prometheus
     scheme: http
     labels:
@@ -44,7 +42,7 @@ prometheus_scrape_configs:
 
   - job_name: nginx
     targets:
-      - "{{ app_internal_ip }}:9113"
+      - "{{ hostvars['bulletins-vm'].internal_ip }}:9113"
     metrics_path: /metrics
     scheme: http
     labels:

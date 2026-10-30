@@ -10,7 +10,7 @@ groups:
       - uid: alert-instance-down
         title: "InstanceDown — target unreachable"
         condition: C
-        for: 2m
+        for: {{ alert_instancedown_for }}
         noDataState: Alerting
         execErrState: Error
         notification_settings:
@@ -20,7 +20,7 @@ groups:
           service: infrastructure
         annotations:
           summary: "One or more Prometheus targets are down"
-          description: "At least one Prometheus target has been unreachable for more than 2 minutes. Check Prometheus targets page."
+          description: "At least one Prometheus target has been unreachable for more than {{ alert_instancedown_for }}. Check Prometheus targets page."
         data:
           - refId: A
             relativeTimeRange: { from: 300, to: 0 }
@@ -50,7 +50,7 @@ groups:
       - uid: alert-app-down
         title: "AppDown — Spring Boot unreachable"
         condition: C
-        for: 1m
+        for: {{ alert_appdown_for }}
         noDataState: Alerting
         execErrState: Error
         notification_settings:
@@ -60,7 +60,7 @@ groups:
           service: bulletins-app
         annotations:
           summary: "Bulletins app is DOWN"
-          description: "Spring Boot Actuator target is unreachable for more than 1 minute."
+          description: "Spring Boot Actuator target is unreachable for more than {{ alert_appdown_for }}."
         data:
           - refId: A
             relativeTimeRange: { from: 300, to: 0 }
@@ -88,7 +88,7 @@ groups:
       - uid: alert-high-5xx
         title: "High5xxRate — application errors"
         condition: C
-        for: 5m
+        for: {{ alert_5xx_for }}
         noDataState: OK
         execErrState: Error
         notification_settings:
@@ -97,8 +97,8 @@ groups:
           severity: warning
           service: bulletins-app
         annotations:
-          summary: "High 5xx error rate (> 0.1 req/s for 5m)"
-          description: "More than 0.1 5xx responses per second in the last 5 minutes."
+          summary: "High 5xx error rate (> {{ alert_5xx_rate_threshold }} req/s for {{ alert_5xx_for }})"
+          description: "More than {{ alert_5xx_rate_threshold }} 5xx responses per second in the last {{ alert_5xx_for }}."
         data:
           - refId: A
             relativeTimeRange: { from: 600, to: 0 }
@@ -113,7 +113,7 @@ groups:
             datasourceUid: __expr__
             model:
               conditions:
-                - evaluator: { params: [0.1], type: gt }
+                - evaluator: { params: [{{ alert_5xx_rate_threshold }}], type: gt }
                   operator: { type: and }
                   query: { params: [A] }
                   reducer: { type: last }
@@ -124,9 +124,9 @@ groups:
               type: threshold
 
       - uid: alert-high-latency
-        title: "HighLatency — p95 > 1s"
+        title: "HighLatency — p95 > {{ alert_latency_p95_threshold }}s"
         condition: C
-        for: 5m
+        for: {{ alert_latency_for }}
         noDataState: OK
         execErrState: Error
         notification_settings:
@@ -135,8 +135,8 @@ groups:
           severity: warning
           service: bulletins-app
         annotations:
-          summary: "HTTP p95 latency above 1 second"
-          description: "95th percentile request latency is above 1s for 5 minutes."
+          summary: "HTTP p95 latency above {{ alert_latency_p95_threshold }} second"
+          description: "95th percentile request latency is above {{ alert_latency_p95_threshold }}s for {{ alert_latency_for }}."
         data:
           - refId: A
             relativeTimeRange: { from: 600, to: 0 }
@@ -151,7 +151,7 @@ groups:
             datasourceUid: __expr__
             model:
               conditions:
-                - evaluator: { params: [1], type: gt }
+                - evaluator: { params: [{{ alert_latency_p95_threshold }}], type: gt }
                   operator: { type: and }
                   query: { params: [A] }
                   reducer: { type: last }
@@ -162,9 +162,9 @@ groups:
               type: threshold
 
       - uid: alert-high-cpu
-        title: "HighCPU — CPU > 80% for 5m"
+        title: "HighCPU — CPU > {{ alert_cpu_threshold }}% for {{ alert_cpu_for }}"
         condition: C
-        for: 5m
+        for: {{ alert_cpu_for }}
         noDataState: OK
         execErrState: Error
         notification_settings:
@@ -174,7 +174,7 @@ groups:
           service: infrastructure
         annotations:
           summary: "High CPU usage on {{ '{{' }} $labels.instance {{ '}}' }}"
-          description: "CPU load > 80% for 5 minutes."
+          description: "CPU load > {{ alert_cpu_threshold }}% for {{ alert_cpu_for }}."
         data:
           - refId: A
             relativeTimeRange: { from: 600, to: 0 }
@@ -189,7 +189,7 @@ groups:
             datasourceUid: __expr__
             model:
               conditions:
-                - evaluator: { params: [80], type: gt }
+                - evaluator: { params: [{{ alert_cpu_threshold }}], type: gt }
                   operator: { type: and }
                   query: { params: [A] }
                   reducer: { type: last }
@@ -200,9 +200,9 @@ groups:
               type: threshold
 
       - uid: alert-high-memory
-        title: "HighMemory — RAM > 85% for 5m"
+        title: "HighMemory — RAM > {{ alert_memory_threshold }}% for {{ alert_memory_for }}"
         condition: C
-        for: 5m
+        for: {{ alert_memory_for }}
         noDataState: OK
         execErrState: Error
         notification_settings:
@@ -212,7 +212,7 @@ groups:
           service: infrastructure
         annotations:
           summary: "High memory usage on {{ '{{' }} $labels.instance {{ '}}' }}"
-          description: "Memory usage > 85% for 5 minutes."
+          description: "Memory usage > {{ alert_memory_threshold }}% for {{ alert_memory_for }}."
         data:
           - refId: A
             relativeTimeRange: { from: 600, to: 0 }
@@ -227,7 +227,7 @@ groups:
             datasourceUid: __expr__
             model:
               conditions:
-                - evaluator: { params: [85], type: gt }
+                - evaluator: { params: [{{ alert_memory_threshold }}], type: gt }
                   operator: { type: and }
                   query: { params: [A] }
                   reducer: { type: last }
@@ -238,9 +238,9 @@ groups:
               type: threshold
 
       - uid: alert-disk-low
-        title: "DiskSpaceLow — root > 85% used"
+        title: "DiskSpaceLow — root > {{ alert_disk_threshold }}% used"
         condition: C
-        for: 10m
+        for: {{ alert_disk_for }}
         noDataState: OK
         execErrState: Error
         notification_settings:
@@ -250,7 +250,7 @@ groups:
           service: infrastructure
         annotations:
           summary: "Low disk space on {{ '{{' }} $labels.instance {{ '}}' }}"
-          description: "Root filesystem usage > 85% for 10 minutes."
+          description: "Root filesystem usage > {{ alert_disk_threshold }}% for {{ alert_disk_for }}."
         data:
           - refId: A
             relativeTimeRange: { from: 900, to: 0 }
@@ -265,7 +265,7 @@ groups:
             datasourceUid: __expr__
             model:
               conditions:
-                - evaluator: { params: [85], type: gt }
+                - evaluator: { params: [{{ alert_disk_threshold }}], type: gt }
                   operator: { type: and }
                   query: { params: [A] }
                   reducer: { type: last }
@@ -276,9 +276,9 @@ groups:
               type: threshold
 
       - uid: alert-no-metrics
-        title: "NoMetrics — target missing for 5m"
+        title: "NoMetrics — target missing for {{ alert_nometrics_for }}"
         condition: C
-        for: 5m
+        for: {{ alert_nometrics_for }}
         noDataState: Alerting
         execErrState: Error
         notification_settings:
@@ -288,7 +288,7 @@ groups:
           service: infrastructure
         annotations:
           summary: "No metrics from {{ '{{' }} $labels.job {{ '}}' }}"
-          description: "Prometheus hasn't received metrics from one or more targets for 5 minutes."
+          description: "Prometheus hasn't received metrics from one or more targets for {{ alert_nometrics_for }}."
         data:
           - refId: A
             relativeTimeRange: { from: 600, to: 0 }
@@ -316,7 +316,7 @@ groups:
       - uid: alert-log-5xx-burst
         title: "Log5xxBurst — 5xx in nginx logs"
         condition: C
-        for: 2m
+        for: {{ alert_log_5xx_for }}
         noDataState: OK
         execErrState: Error
         notification_settings:
@@ -326,7 +326,7 @@ groups:
           service: bulletins-app
         annotations:
           summary: "Burst of 5xx errors in nginx logs"
-          description: "More than 5 HTTP 5xx responses in the last 5 minutes (from nginx access logs)."
+          description: "More than {{ alert_log_5xx_count_threshold }} HTTP 5xx responses in the last 5 minutes (from nginx access logs)."
         data:
           - refId: A
             relativeTimeRange: { from: 600, to: 0 }
@@ -339,7 +339,7 @@ groups:
             datasourceUid: __expr__
             model:
               conditions:
-                - evaluator: { params: [5], type: gt }
+                - evaluator: { params: [{{ alert_log_5xx_count_threshold }}], type: gt }
                   operator: { type: and }
                   query: { params: [A] }
                   reducer: { type: last }
@@ -348,10 +348,11 @@ groups:
               expression: A
               refId: C
               type: threshold
+
       - uid: alert-log-app-errors
         title: "LogAppErrors — ERROR logs burst"
         condition: C
-        for: 5m
+        for: {{ alert_log_app_errors_for }}
         noDataState: OK
         execErrState: Error
         notification_settings:
@@ -361,7 +362,7 @@ groups:
           service: bulletins-app
         annotations:
           summary: "Burst of ERROR logs in application"
-          description: "More than 10 ERROR log lines from bulletins-app in the last 5 minutes."
+          description: "More than {{ alert_log_app_errors_threshold }} ERROR log lines from bulletins-app in the last 5 minutes."
         data:
           - refId: A
             relativeTimeRange: { from: 600, to: 0 }
@@ -374,7 +375,7 @@ groups:
             datasourceUid: __expr__
             model:
               conditions:
-                - evaluator: { params: [10], type: gt }
+                - evaluator: { params: [{{ alert_log_app_errors_threshold }}], type: gt }
                   operator: { type: and }
                   query: { params: [A] }
                   reducer: { type: last }

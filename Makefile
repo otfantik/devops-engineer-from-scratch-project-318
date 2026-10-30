@@ -6,7 +6,7 @@ PLAYBOOK    := playbook.yml
 help:
 	@echo "Available commands:"
 	@echo "  make ping         — ping both VMs"
-	@echo "  make deps         — install Ansible collections"
+	@echo "  make deps         — install Ansible collections and roles"
 	@echo "  make deploy       — full deployment"
 	@echo "  make deploy-force — deploy + force restart app"
 	@echo "  make vault-edit   — edit vault.yml"
@@ -19,7 +19,8 @@ ping:
 	cd $(ANSIBLE_DIR) && ansible all -m ping
 
 deps:
-	cd $(ANSIBLE_DIR) && ansible-galaxy collection install -r requirements.yml
+	ansible-galaxy collection install -r requirements.yml -p $(ANSIBLE_DIR)/collections
+	ansible-galaxy role install -r requirements.yml -p $(ANSIBLE_DIR)/roles
 
 deploy:
 	cd $(ANSIBLE_DIR) && ansible-playbook $(PLAYBOOK)

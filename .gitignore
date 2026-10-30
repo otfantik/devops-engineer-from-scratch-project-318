@@ -10,3 +10,4 @@ ansible/inventory.yml
 
 # OS
 .DS_Store
+.ansible/

@@ -1,0 +1,41 @@
+---
+app_internal_ip: "10.0.0.23"
+app_public_ip: "51.250.69.206"
+app_domain: "bulletins-otfantik.ddns.net"
+
+monitoring_internal_ip: "10.0.0.34"
+monitoring_public_ip: "93.77.179.75"
+
+node_exporter_version: "1.8.2"
+nginx_exporter_version: "1.4.0"
+promtail_version: "3.2.0"
+prometheus_version: "v2.54.1"
+grafana_version: "11.2.0"
+loki_version: "3.2.0"
+
+loki_retention: "168h"
+
+alert_cpu_threshold: 80
+alert_cpu_for: 5m
+
+alert_memory_threshold: 85
+alert_memory_for: 5m
+
+alert_disk_threshold: 85
+alert_disk_for: 10m
+
+alert_5xx_rate_threshold: 0.1
+alert_5xx_for: 5m
+
+alert_latency_p95_threshold: 1
+alert_latency_for: 5m
+
+alert_instancedown_for: 2m
+alert_appdown_for: 1m
+alert_nometrics_for: 5m
+
+alert_log_5xx_count_threshold: 5
+alert_log_5xx_for: 2m
+
+alert_log_app_errors_threshold: 10
+alert_log_app_errors_for: 5m
