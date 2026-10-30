@@ -13,3 +13,4 @@ ansible/inventory.yml
 .ansible/
 ansible/roles/nginxinc.nginx/
 ansible/roles/nginxinc.nginx_config/
+ansible/roles/geerlingguy.certbot/

@@ -40,6 +40,13 @@ Infrastructure-as-Code для развёртывания приложения Bu
 | Grafana | Prometheus, Loki | Datasource'ы |
 | Grafana Alerting | SMTP Yandex | Email-алерты |
 
+## Зависимости Ansible
+
+| Компонент | Источник |
+|---|---|
+| nginx | Официальная роль `nginxinc.nginx` (F5/NGINX) |
+| certbot | Роль `geerlingguy.certbot` (Established practice) |
+| community.docker, community.crypto, community.general | Официальные коллекции Ansible |
 ## Развёртывание с нуля
 
 ### 1. Подготовка
@@ -52,8 +59,7 @@ Ansible + зависимости:
 
     brew install ansible ansible-lint
     git clone https://github.com/otfantik/devops-engineer-from-scratch-project-318.git
-    cd devops-engineer-from-scratch-project-318/ansible
-    ansible-galaxy collection install -r requirements.yml
+    cd devops-engineer-from-scratch-project-318
     make deps
 
 ### 2. Инвентарь
@@ -66,7 +72,7 @@ Ansible + зависимости:
 ### 3. Vault
 
 Пароль:
-
+    cd ansibles
     echo "your-strong-password" > .vault_pass
     chmod 600 .vault_pass
 

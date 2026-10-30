@@ -35,14 +35,46 @@
   roles:
     - app_nginx
 
+- name: Install certbot
+  hosts: app
+  become: true
+  tags: [certbot]
+  roles:
+    - role: geerlingguy.certbot
+      certbot_auto_renew: true
+      certbot_auto_renew_minute: "0"
+      certbot_auto_renew_hour: "3"
+      certbot_create_if_missing: false
+      certbot_admin_email: "{{ certbot_email }}"
+      certbot_create_standalone_stop_services: []
+
 - name: Issue TLS certificate
   hosts: app
   become: true
   vars_files:
     - vault.yml
   tags: [certbot, tls]
-  roles:
-    - certbot
+  tasks:
+    - name: Check if certificate already exists
+      ansible.builtin.stat:
+        path: "/etc/letsencrypt/live/{{ domain_name }}/fullchain.pem"
+      register: cert_file
+
+    - name: Ensure webroot directory exists
+      ansible.builtin.file:
+        path: /var/www/certbot
+        state: directory
+        mode: "0755"
+
+    - name: Obtain Let's Encrypt certificate via webroot
+      ansible.builtin.command:
+        cmd: >-
+          certbot certonly --webroot -w /var/www/certbot
+          --non-interactive --agree-tos --no-eff-email
+          -m {{ certbot_email }} -d {{ domain_name }}
+      when: not cert_file.stat.exists
+      register: certbot_result
+      changed_when: certbot_result.rc == 0
 
 - name: Reconfigure nginx with TLS
   hosts: app
